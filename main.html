@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="font-sans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活状态追踪器 - 液态数字形态版</title>
+
+    <!-- Tailwind CSS -->
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-100-M/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Noto Sans SC) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style id="default-styles">
+        /* Define CSS Variables */
+        :root {
+            --bg-start: #2b1a3d; /* Deep Purple */
+            --bg-mid: #1f3a61; /* Deep Blue */
+            --bg-end: #1a4a5a; /* Dark Cyan/Teal */
+            --text-primary: #f0f0f8; /* Light Lavender/White */
+            --text-secondary: #a0a0c0; /* Muted Lavender */
+            --accent-start: #8a4fff; /* Vibrant Purple */
+            --accent-mid: #3b82f6; /* Blue 500 */
+            --accent-end: #14b8a6; /* Teal 500 */
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-light: rgba(255, 255, 255, 0.1); /* Subtle highlight */
+        }
+
+        /* Base Body Style with Animated Gradient */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-primary);
+            background: linear-gradient(270deg, var(--bg-start), var(--bg-mid), var(--bg-end), var(--bg-mid), var(--bg-start));
+            background-size: 600% 600%;
+            animation: flowingGradient 25s ease infinite;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            opacity: 0; /* Start hidden for fade-in */
+            animation: fadeInAnimation ease 0.6s forwards;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes flowingGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+         @keyframes fadeInAnimation {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+
+        /* Container */
+        .liquid-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1.5rem; /* Less padding initially, components have own */
+        }
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary);
+            font-weight: 500; /* Medium */
+            text-shadow: 0 1px 3px var(--shadow-color);
+        }
+        h1 {
+            font-size: 2rem; /* text-3xl */
+            font-weight: 700; /* Bold */
+            text-align: center;
+            margin-bottom: 2rem;
+            /* Apply subtle gradient to text */
+            background: linear-gradient(90deg, var(--accent-start), #5dade2, var(--accent-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        h2 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* Semibold */
+            margin-bottom: 1.25rem; /* mb-5 */
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+         h2 .fas { /* Icon within H2 */
+             color: var(--accent-mid);
+             opacity: 0.8;
+        }
+        h3 { /* Section sub-headers */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600;
+            margin-bottom: 0.75rem; /* mb-3 */
+             color: var(--text-primary);
+             opacity: 0.9;
+        }
+
+        /* Sections/Cards - Glassmorphism */
+        .glass-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem; /* rounded-3xl */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 8px 32px 0 var(--shadow-color), inset 0 1px 0 0 var(--shadow-light);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            margin-bottom: 2rem; /* space-y-8 equivalent */
+             transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-section:hover {
+             /* Subtle lift effect */
+             /* transform: translateY(-2px); */
+             /* box-shadow: 0 12px 40px 0 var(--shadow-color), inset 0 1px 0 0 var(--shadow-light); */
+        }
+
+
+        /* Buttons - Liquid Style */
+        button, .button-like-label {
+            font-size: 0.9rem;
+            padding: 0.6rem 1.2rem; /* py-2.5 px-5 */
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 500; /* medium */
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin: 0.3rem;
+            cursor: pointer;
+            position: relative; /* For potential pseudo elements */
+            overflow: hidden; /* For effects */
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2), inset 0 -1px 2px 0 rgba(255, 255, 255, 0.1);
+        }
+        /* Primary Accent Button */
+        .btn-liquid-accent {
+             background: linear-gradient(120deg, var(--accent-start) 0%, var(--accent-mid) 50%, var(--accent-end) 100%);
+             background-size: 200% 100%; /* For potential hover animation */
+             color: white;
+             border-color: rgba(255, 255, 255, 0.2);
+        }
+        .btn-liquid-accent:hover {
+             background-position: right center; /* Change gradient position */
+             box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.25), inset 0 -1px 2px 0 rgba(255, 255, 255, 0.1);
+             transform: translateY(-1px);
+        }
+         /* Secondary Button - Translucent */
+        .btn-liquid-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--glass-border);
+            color: var(--text-primary);
+             backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .btn-liquid-secondary:hover {
+             background-color: rgba(255, 255, 255, 0.15);
+             border-color: rgba(255, 255, 255, 0.3);
+             transform: translateY(-1px);
+        }
+        /* Small action buttons (edit/delete) */
+        .btn-action {
+             padding: 0.3rem 0.7rem;
+             font-size: 0.8rem;
+             border-radius: 9999px;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .btn-edit { background-color: rgba(245, 158, 11, 0.6); /* amber-500 transparent */ color: white; border: none;}
+        .btn-edit:hover { background-color: rgba(217, 119, 6, 0.8); /* amber-600 */ }
+        .btn-delete { background-color: rgba(220, 38, 38, 0.5); /* red-600 transparent */ color: white; border: none;}
+        .btn-delete:hover { background-color: rgba(185, 28, 28, 0.7); /* red-700 */ }
+         .btn-remove { background-color: rgba(253, 126, 20, 0.6); /* orange-500 transparent */ color: white; border: none;}
+         .btn-remove:hover { background-color: rgba(234, 88, 12, 0.8); /* orange-600 */ }
+
+
+        /* Forms - Liquid Style */
+        label {
+             display: block;
+             margin-bottom: 0.4rem;
+             font-size: 0.9rem;
+             font-weight: 400;
+             color: var(--text-secondary);
+             opacity: 0.9;
+        }
+        input[type="text"], input[type="number"], textarea, select {
+            display: block;
+            width: 100%;
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            background-color: rgba(0, 0, 0, 0.2); /* Dark transparent */
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+             margin-top: 0.2rem;
+             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+         input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-mid);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4), inset 0 2px 4px rgba(0,0,0,0.3); /* Blue ring */
+         }
+        input[type="number"] { width: 7rem; text-align: center;}
+        select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a0a0c0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.7rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.8rem; min-width: 9rem; }
+        textarea { min-height: 90px; }
+
+        /* Lists - Liquid Style */
+        ul { list-style: none; padding: 0; margin: 0; }
+        #routine-list li, #potential-debuffs-list li, .manager-section li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+         /* Add subtle hover to list items maybe? */
+         /* #routine-list li:hover, .manager-section li:hover { background-color: rgba(255, 255, 255, 0.03); } */
+         #routine-list li:last-child, #potential-debuffs-list li:last-child, .manager-section li:last-child { border-bottom: none; }
+
+        .routine-info, .item-details { flex-grow: 1; margin-right: 1rem; display: flex; flex-direction: column; }
+        .routine-name, .item-name { font-weight: 500; color: var(--text-primary); font-size: 1rem;}
+        .last-completed, .item-frequency, .status-message { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; opacity: 0.85;}
+        .status-message.overdue-true { color: #f87171; /* Lighter Red */ font-weight: 500; opacity: 1;}
+        .status-message.overdue-soon { color: #facc15; /* Lighter Yellow */ opacity: 1;}
+        .status-message.overdue-false { color: #34d399; /* Lighter Emerald */ opacity: 1;}
+        button.routine-done-btn { background: linear-gradient(120deg, #34d399, #2dd4bf); color: #1f2937; /* Dark text */ padding: 0.3rem 0.7rem; font-size: 0.8rem; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        button.routine-done-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+        .action-buttons { flex-shrink: 0; } /* Prevent shrinking */
+
+        /* Modal - Liquid Style */
+        .modal { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        .modal-content {
+            background: radial-gradient(circle at top left, rgba(43, 26, 61, 0.7), rgba(31, 58, 97, 0.7)); /* Dark gradient bg */
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 50px 0 var(--shadow-color), inset 0 1px 0 0 var(--shadow-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.5rem; /* rounded-3xl */
+            padding: 2rem; /* p-8 */
+        }
+        .modal-content h3 { border-bottom-color: var(--glass-border); color: var(--text-primary); opacity: 1; }
+        .close-btn { font-size: 1.75rem; color: var(--text-secondary); top: 1rem; right: 1.2rem; opacity: 0.7; transition: opacity 0.2s ease; }
+        .close-btn:hover { opacity: 1; color: var(--text-primary); }
+
+        /* Intensity Slider - Liquid */
+         .slider-container { gap: 0.75rem; margin-top: 0.5rem;}
+         #debuff-intensity-slider {
+             flex-grow: 1; cursor: pointer; height: 6px; border-radius: 3px;
+             background: linear-gradient(90deg, var(--accent-mid) 0%, var(--accent-end) 100%);
+             appearance: none; -webkit-appearance: none;
+             box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+             border: 1px solid rgba(255, 255, 255, 0.1);
+         }
+         #debuff-intensity-slider::-webkit-slider-thumb {
+             appearance: none; -webkit-appearance: none;
+             width: 18px; height: 18px;
+             background: var(--text-primary); /* White thumb */
+             border-radius: 50%; cursor: pointer;
+             border: 1px solid rgba(0,0,0,0.2);
+             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+             transition: transform 0.2s ease;
+         }
+         #debuff-intensity-slider::-moz-range-thumb {
+             width: 18px; height: 18px; background: var(--text-primary); border-radius: 50%; cursor: pointer; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+         }
+         #debuff-intensity-slider:active::-webkit-slider-thumb { transform: scale(1.1); }
+         #intensity-value-display { font-weight: 600; color: var(--text-primary); font-size: 1rem; min-width: 20px; text-align: right; }
+         .intensity-label-text { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Manager Section Adjustments */
+         .manager-section { background: rgba(0,0,0,0.1); border-radius: 1rem; border: 1px solid var(--glass-border); padding: 1rem; }
+         .manager-section h4 { color: var(--text-primary); opacity: 0.9; font-size: 1rem; margin-bottom: 0.75rem;}
+         .manager-section ul { background: transparent; border: none; max-height: 200px; overflow-y: auto; margin-bottom: 1rem;}
+         .manager-section li { border-bottom-color: var(--glass-border); padding: 0.6rem 0.2rem; }
+         .add-item-form { border: none; background: transparent; padding: 0; }
+         .add-item-form h5 { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 400;}
+
+
+        /* Markdown Output Area */
+        #markdown-output {
+             background: rgba(0, 0, 0, 0.15);
+             border: 1px solid var(--glass-border);
+             border-radius: 1rem; /* rounded-2xl */
+             padding: 1.5rem;
+             font-size: 0.95rem;
+             line-height: 1.7;
+             color: var(--text-secondary);
+             backdrop-filter: blur(5px);
+             -webkit-backdrop-filter: blur(5px);
+        }
+         #markdown-output h3 { color: var(--text-primary); font-size: 1.1rem; border-bottom-color: var(--glass-border); opacity: 0.9;}
+         #markdown-output ul { list-style: none; padding-left: 0; }
+         #markdown-output li::before { content: "✦"; /* Sparkle or other organic shape */ margin-right: 0.6em; color: var(--accent-end); opacity: 0.7; }
+         #markdown-output strong { font-weight: 600; color: var(--text-primary); opacity: 0.95; }
+         #markdown-output p { margin-bottom: 0.5rem; }
+
+        /* Utility for slight 3D lift */
+        .lift-element {
+             transition: transform 0.3s ease, box-shadow 0.3s ease;
+         }
+         .lift-element:hover {
+             transform: perspective(500px) translateZ(5px);
+             box-shadow: 0 5px 15px var(--shadow-color);
+         }
+
+        /* Status spans */
+        #import-status, #css-import-status { display: inline-block; margin-left: 1rem; font-size: 0.85em; opacity: 0.8; }
+        #import-status.success, #css-import-status.success { color: #34d399; }
+        #import-status.error, #css-import-status.error { color: #f87171; }
+
+        /* Ensure icons align well with text */
+        .fas, .far, .fal, .fad, .fab { margin-right: 0.4em; vertical-align: -0.1em; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+             body { background-size: 800% 800%; } /* Slow down animation slightly on mobile maybe */
+             .liquid-container { padding: 1rem; margin: 1rem auto;}
+             h1 { font-size: 1.75rem; } h2 { font-size: 1.25rem; }
+             .glass-section { padding: 1rem; border-radius: 1rem; }
+             button, .button-like-label { padding: 0.5rem 1rem; font-size: 0.85rem; }
+             .modal-content { padding: 1.5rem; border-radius: 1rem; margin: 5% auto; }
+        }
+
+    </style>
+    <!-- Placeholder for custom user styles -->
+    <!-- <style id="custom-user-styles"></style> -->
+</head>
+<body class="min-h-screen">
+    <div class="liquid-container">
+        <header>
+            <h1>生活状态追踪器</h1>
+        </header>
+
+        <main class="space-y-8">
+            <!-- Section for Logging Debuffs -->
+            <section class="logging-area glass-section">
+                <h2><i class="fas fa-plus-circle"></i>记录 Debuff</h2>
+                <div id="l1-categories-display" class="mt-4 flex flex-wrap gap-3">
+                    <p class="text-sm text-gray-400">加载分类中...</p>
+                </div>
+            </section>
+
+            <!-- Debuff Logger Modal -->
+            <div id="debuff-logger" class="modal">
+                <!-- Modal content structure remains similar, but styling is applied via classes -->
+                 <div class="modal-content">
+                    <span class="close-btn" onclick="closeModal('debuff-logger')">×</span>
+                    <h3 id="debuff-modal-title" class="text-xl font-semibold mb-6">记录 Debuff</h3>
+                    <div id="category2-options" class="mb-6">
+                        <h4 class="text-base font-medium mb-3 text-gray-300">选择二级分类 (<span id="selected-cat1-display" class="font-semibold text-gray-100"></span>):</h4>
+                        <div id="category2-buttons" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div id="debuff-details" style="display: none;" class="space-y-5 pt-5 border-t border-[var(--glass-border)]">
+                        <h4 class="text-base font-medium mb-3 text-gray-300">添加详情 (<span id="selected-cat2-display" class="font-semibold text-gray-100"></span>):</h4>
+                        <div>
+                            <label for="debuff-duration">持续时间:</label>
+                            <input type="text" id="debuff-duration" placeholder="例如: 几小时, 半天, 持续中">
+                        </div>
+                        <div class="intensity-container">
+                            <label for="debuff-intensity-slider">强度:</label>
+                            <div class="slider-container">
+                                <span class="intensity-label-text">1</span>
+                                <input type="range" id="debuff-intensity-slider" min="1" max="5" value="3">
+                                <span class="intensity-label-text">5</span>
+                                <span id="intensity-value-display" class="ml-2">3</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="debuff-notes">备注:</label>
+                            <textarea id="debuff-notes" rows="3" placeholder="可选"></textarea>
+                        </div>
+                        <div class="flex justify-start gap-4 pt-4">
+                             <button id="submit-debuff-btn" class="btn-liquid-accent"><i class="fas fa-check"></i>确认</button>
+                             <button onclick="goBackToL2()" id="debuff-back-btn" class="btn-liquid-secondary"><i class="fas fa-arrow-left"></i>返回</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Area -->
+            <section class="dashboard grid md:grid-cols-2 gap-8">
+                 <div class="glass-section">
+                    <h2><i class="fas fa-exclamation-triangle"></i>潜在 Debuff</h2>
+                    <ul id="potential-debuffs-list" class="mt-4 space-y-3"><li>加载中...</li></ul>
+                 </div>
+                 <div class="glass-section">
+                    <h2><i class="fas fa-sync-alt"></i>循环维护</h2>
+                    <ul id="routine-list" class="mt-4"><li>加载中...</li></ul>
+                 </div>
+             </section>
+
+             <!-- Data Management & Settings -->
+            <section class="settings-area glass-section">
+                 <h2><i class="fas fa-cog"></i>数据与设置</h2>
+                  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                     <div class="space-y-3">
+                         <h3 class="text-base font-medium">应用管理</h3>
+                         <button id="manage-categories-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-tags fa-fw"></i>管理分类</button>
+                         <button id="manage-routines-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-calendar-check fa-fw"></i>管理维护</button>
+                     </div>
+                     <div class="space-y-3">
+                          <h3 class="text-base font-medium">数据操作</h3>
+                          <button id="export-data-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-file-export fa-fw"></i>导出数据</button>
+                         <label for="import-file-input" class="button-like-label w-full !justify-start btn-liquid-secondary"><i class="fas fa-file-import fa-fw"></i>导入数据</label>
+                         <input type="file" id="import-file-input" accept=".json" class="hidden">
+                         <span id="import-status"></span>
+                     </div>
+                     <div class="space-y-3">
+                         <h3 class="text-base font-medium">外观样式</h3>
+                         <label for="import-css-input" class="button-like-label w-full !justify-start btn-liquid-secondary"><i class="fas fa-palette fa-fw"></i>导入样式</label>
+                         <input type="file" id="import-css-input" accept=".css" class="hidden">
+                         <button id="remove-css-btn" class="w-full text-left btn-remove justify-start"><i class="fas fa-times-circle fa-fw"></i>移除样式</button>
+                         <span id="css-import-status"></span>
+                     </div>
+                 </div>
+            </section>
+
+            <!-- Category Manager Modal -->
+            <div id="category-manager" class="modal">
+                 <!-- Modal content structure remains similar -->
+                  <div class="modal-content">
+                    <span class="close-btn" onclick="closeModal('category-manager')">×</span>
+                    <h3 class="text-xl font-semibold mb-6">管理 Debuff 分类</h3>
+                    <div class="manager-section space-y-4">
+                        <div>
+                            <h4 class="text-lg font-medium mb-2">一级分类 (L1)</h4>
+                            <ul id="l1-manage-list"></ul>
+                        </div>
+                        <div class="add-item-form !mt-4">
+                            <div class="form-row items-center gap-3">
+                                <input type="text" id="new-l1-name" placeholder="新一级分类名称" class="flex-grow">
+                                <button onclick="addL1Category()" class="btn-liquid-accent !py-2 !px-4"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="border-[var(--glass-border)] my-6">
+                    <div class="manager-section space-y-4">
+                         <div>
+                            <h4 class="text-lg font-medium mb-2">二级分类 (L2)</h4>
+                            <label for="l1-select-for-l2">选择一级分类:</label>
+                            <select id="l1-select-for-l2" onchange="renderL2ManagementList()" class="mb-3"></select>
+                            <ul id="l2-manage-list"></ul>
+                        </div>
+                        <div class="add-item-form !mt-4">
+                            <div class="form-row items-center gap-3">
+                                <input type="text" id="new-l2-name" placeholder="新二级分类名称" class="flex-grow">
+                                <button onclick="addL2Category()" class="btn-liquid-accent !py-2 !px-4"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Routine Manager Modal -->
+            <div id="routine-manager" class="modal">
+                <!-- Modal content structure remains similar -->
+                 <div class="modal-content">
+                    <span class="close-btn" onclick="closeModal('routine-manager')">×</span>
+                    <h3 class="text-xl font-semibold mb-6">管理循环维护项目</h3>
+                    <div class="manager-section mb-6">
+                        <h4 class="text-lg font-medium mb-2">现有维护项目</h4>
+                        <ul id="routine-manage-list"></ul>
+                    </div>
+                    <div class="add-item-form">
+                        <h5 id="routine-form-title" class="text-lg font-medium mb-4">添加新的维护项目</h5>
+                         <input type="hidden" id="editing-routine-original-name" value="">
+                         <div class="space-y-4">
+                            <div class="form-row items-center">
+                                <label for="new-routine-name" class="w-24">项目名称:</label>
+                                <input type="text" id="new-routine-name" placeholder="例如：运动, 阅读" class="flex-grow">
+                            </div>
+                            <div class="form-row items-center">
+                                <label for="new-routine-freq-value" class="w-24">频率:</label>
+                                <span>每</span>
+                                <input type="number" id="new-routine-freq-value" min="1" value="1">
+                                <select id="new-routine-freq-unit">
+                                    <option value="hours">小时</option>
+                                    <option value="days" selected>天</option>
+                                </select>
+                                <div class="flex-grow"></div>
+                            </div>
+                            <div class="form-actions flex justify-start gap-4 pt-3">
+                                <button id="add-edit-routine-btn" onclick="addOrUpdateRoutine()" class="btn-liquid-accent"><i class="fas fa-save"></i> 添加项目</button>
+                                <button id="cancel-edit-routine-btn" class="btn-liquid-secondary" style="display: none;" onclick="cancelEditRoutine()"><i class="fas fa-times"></i> 取消</button>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Display (Renders HTML) -->
+            <section class="log-display glass-section">
+                <h2><i class="fas fa-history"></i>最近状态预览</h2>
+                <div id="markdown-output" class="mt-4">预览将显示在这里...</div>
+            </section>
+        </main>
+
+        <footer class="text-center text-xs text-[var(--text-secondary)] opacity-70 pt-6 mt-10 border-t border-[var(--glass-border)]">
+             Debuff Tracker - Liquid Digital Morphism Interface | © 2023
+        </footer>
+
+    </div> <!-- End Container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- JS START --- (Keep the V3.2 JS logic)
+            const LOCAL_STORAGE_KEY = 'lifeDebuffTrackerData_v3_liquid';
+            const LOCAL_STORAGE_CSS_KEY = 'lifeDebuffTrackerCustomCSS_v3_liquid';
+
+            // Default data structures (condensed)
+            const defaultDebuffCategories={"生理不适":["头痛","胃痛","疲劳","肌肉酸痛","皮肤问题","过敏","其他"],"心理状态":["焦虑","情绪低落","压力大","分心","无聊","烦躁易怒","缺乏动力"],"工作学习":["任务堆积","开会过多","学习困难","被打断","效率低下","沟通不畅"],"环境干扰":["太吵","太乱","空气不好","温度不适","光线刺眼/昏暗"],"生活方面":["睡眠不足","忘记带东西","计划有变","饮食不规律","交通耗时","家务繁重"]};
+            const defaultRoutines=[{name:"刷牙",frequency_hours:12,last_completed:null},{name:"洗脸",frequency_hours:12,last_completed:null},{name:"洗澡",frequency_hours:24,last_completed:null},{name:"喝足够水",frequency_hours:8,last_completed:null},{name:"更换毛巾",frequency_days:3,last_completed:null},{name:"换床单",frequency_days:7,last_completed:null},{name:"打扫卫生",frequency_days:3,last_completed:null},{name:"扔垃圾",frequency_days:1,last_completed:null}];
+
+            // State
+            let appData={logEntries:[],routine_configs:[],customDebuffCategories:{}};
+            let debuffLogState={category1:null,category2:null};
+
+            // DOM Elements (assuming IDs match HTML)
+            const l1CategoriesDisplayEl=document.getElementById('l1-categories-display');
+            const debuffLoggerModal=document.getElementById('debuff-logger');
+            const category2OptionsContainer=document.getElementById('category2-options');
+            const category2ButtonsEl=document.getElementById('category2-buttons');
+            const debuffDetailsEl=document.getElementById('debuff-details');
+            const selectedCat1Display=document.getElementById('selected-cat1-display');
+            const selectedCat2Display=document.getElementById('selected-cat2-display');
+            const debuffDurationInput=document.getElementById('debuff-duration');
+            const debuffIntensitySlider=document.getElementById('debuff-intensity-slider');
+            const intensityValueDisplay=document.getElementById('intensity-value-display');
+            const debuffNotesInput=document.getElementById('debuff-notes');
+            const submitDebuffBtn=document.getElementById('submit-debuff-btn');
+            const debuffBackBtn=document.getElementById('debuff-back-btn');
+            const potentialDebuffsListEl=document.getElementById('potential-debuffs-list');
+            const routineListEl=document.getElementById('routine-list');
+            const exportBtn=document.getElementById('export-data-btn');
+            const importFileInput=document.getElementById('import-file-input');
+            const importStatusEl=document.getElementById('import-status');
+            const manageCategoriesBtn=document.getElementById('manage-categories-btn');
+            const categoryManagerModal=document.getElementById('category-manager');
+            const l1ManageListEl=document.getElementById('l1-manage-list');
+            const l1SelectForL2El=document.getElementById('l1-select-for-l2');
+            const l2ManageListEl=document.getElementById('l2-manage-list');
+            const newL1NameInput=document.getElementById('new-l1-name');
+            const newL2NameInput=document.getElementById('new-l2-name');
+            const manageRoutinesBtn=document.getElementById('manage-routines-btn');
+            const routineManagerModal=document.getElementById('routine-manager');
+            const routineManageListEl=document.getElementById('routine-manage-list');
+            const routineFormTitle=document.getElementById('routine-form-title');
+            const newRoutineNameInput=document.getElementById('new-routine-name');
+            const newRoutineFreqValueInput=document.getElementById('new-routine-freq-value');
+            const newRoutineFreqUnitSelect=document.getElementById('new-routine-freq-unit');
+            const addEditRoutineBtn=document.getElementById('add-edit-routine-btn');
+            const cancelEditRoutineBtn=document.getElementById('cancel-edit-routine-btn');
+            const editingRoutineOriginalNameInput=document.getElementById('editing-routine-original-name');
+            const markdownOutputEl=document.getElementById('markdown-output');
+            const importCssInput=document.getElementById('import-css-input');
+            const removeCssBtn=document.getElementById('remove-css-btn');
+            const cssImportStatusEl=document.getElementById('css-import-status');
+
+            // --- Core Data Functions (Condensed) ---
+            function loadData(){const dS=localStorage.getItem(LOCAL_STORAGE_KEY); if(dS){try{const pD=JSON.parse(dS); if(pD&&typeof pD==='object'&&Array.isArray(pD.logEntries)&&Array.isArray(pD.routine_configs)&&typeof pD.customDebuffCategories==='object'&&pD.customDebuffCategories!==null){appData=pD; ensureAllDefaultRoutinesExist(false); if(Object.keys(appData.customDebuffCategories).length===0){appData.customDebuffCategories=JSON.parse(JSON.stringify(defaultDebuffCategories));}}else{initializeDefaultData();}}catch(e){initializeDefaultData();}}else{initializeDefaultData();}}
+            function initializeDefaultData(){appData={logEntries:[],routine_configs:JSON.parse(JSON.stringify(defaultRoutines)),customDebuffCategories:JSON.parse(JSON.stringify(defaultDebuffCategories)),}; saveData();}
+            function ensureAllDefaultRoutinesExist(forceIfListEmpty=true){if(forceIfListEmpty&&appData.routine_configs.length===0){appData.routine_configs=JSON.parse(JSON.stringify(defaultRoutines)); return;} const eN=new Set(appData.routine_configs.map(r=>r.name)); defaultRoutines.forEach(dR=>{if(!eN.has(dR.name)){appData.routine_configs.push(JSON.parse(JSON.stringify(dR)));}});}
+            function saveData(){try{localStorage.setItem(LOCAL_STORAGE_KEY,JSON.stringify(appData));}catch(e){console.error("Err save data:", e);}}
+            function addLogEntry(entryData){const nE={id:generateUUID(),timestamp:new Date().toISOString(),...entryData}; appData.logEntries.push(nE); saveData(); renderDashboard();}
+            function generateUUID(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+
+            // --- Rendering Functions (Condensed) ---
+            function renderUI(){renderL1Categories(); renderDashboard();}
+            function renderL1Categories(){l1CategoriesDisplayEl.innerHTML=''; const cats=appData.customDebuffCategories; if(Object.keys(cats).length===0){l1CategoriesDisplayEl.innerHTML='<p class="text-sm text-[var(--text-secondary)] opacity-80">无 Debuff 分类。</p>'; return;} Object.keys(cats).sort().forEach(c1=>{const btn=document.createElement('button'); btn.textContent=c1; btn.className='btn-liquid-secondary lift-element'; btn.onclick=()=>startDebuffLogFlow(c1); l1CategoriesDisplayEl.appendChild(btn);});}
+            function renderDashboard(){renderRoutineStatus(); renderPotentialDebuffs(); renderMarkdownPreview();}
+            function formatRelativeTime(dS){if (!dS) return "从未"; try {const d=new Date(dS); if(isNaN(d.getTime()))return"无效日期"; const n=new Date(); const dS=Math.round((n-d)/1000); const dM=Math.round(dS/60); const dH=Math.round(dM/60); const dD=Math.round(dH/24); if(dS<60)return`刚刚`; if(dM<60)return`${dM}分钟前`; if(dH<24)return`${dH}小时前`; if(dD===1)return"昨天"; if(dD<7)return`${dD}天前`; return d.toLocaleDateString('zh-CN',{month:'short',day:'numeric'});}catch(e){return"日期错误";}}
+            function getOverdueStatus(r){if(!r)return{overdue:false,message:'无效项目'};if(!r.last_completed){let fM=0; if(r.frequency_hours)fM=r.frequency_hours*36e5; else if(r.frequency_days)fM=r.frequency_days*864e5; const iO=fM>0; return{overdue:iO,hoursLeft:-Infinity,statusClass:iO?'overdue-true':'',message:iO?'从未完成':'未开始'};} try{const lCD=new Date(r.last_completed); if(isNaN(lCD.getTime()))return{overdue:true,hoursLeft:-Infinity,statusClass:'overdue-true',message:'日期无效'}; const now=new Date(); let fM; if(r.frequency_hours)fM=r.frequency_hours*36e5; else if(r.frequency_days)fM=r.frequency_days*864e5; else return{overdue:false,hoursLeft:Infinity,statusClass:'',message:'无频率'}; const dD=new Date(lCD.getTime()+fM); const mL=dD-now; const hL=mL/36e5; let sC='overdue-false'; let msg=`${Math.ceil(hL)} 小时后`; let o=false; const sTH=Math.max(1,(r.frequency_hours?r.frequency_hours*0.2:(r.frequency_days||1)*24*0.15)); if(hL<=0){o=true; sC='overdue-true'; const hO=Math.abs(Math.round(hL)); if(hO>=48)msg=`逾期 ${Math.round(hO/24)} 天`; else msg=`逾期 ${hO} 小时`;} else if(hL<sTH){sC='overdue-soon'; msg=`${Math.ceil(hL)} 小时内到期`;} return {overdue:o,hoursLeft:hL,statusClass:sC,message:msg};}catch(e){return{overdue:true,hoursLeft:-Infinity,statusClass:'overdue-true',message:'错误'};}}
+            function renderRoutineStatus(){routineListEl.innerHTML=''; if(!appData.routine_configs||appData.routine_configs.length===0){routineListEl.innerHTML='<li class="text-sm text-[var(--text-secondary)] opacity-80">无维护项目。</li>'; return;} const sortedRoutines=[...appData.routine_configs].sort((a,b)=>{const sA=getOverdueStatus(a),sB=getOverdueStatus(b); const oS=(s)=>s.overdue?2:(s.statusClass==='overdue-soon'?1:0); const sD=oS(sB)-oS(sA); if(sD!==0)return sD; if(sA.hoursLeft!==sB.hoursLeft)return sA.hoursLeft-sB.hoursLeft; return a.name.localeCompare(b.name);}); sortedRoutines.forEach(r=>{const li=document.createElement('li'); const s=getOverdueStatus(r); li.innerHTML=`<div class="routine-info"><span class="routine-name">${r.name}</span><span class="last-completed">上次: ${formatRelativeTime(r.last_completed)}</span><span class="status-message ${s.statusClass}">${s.message}</span></div><button class="routine-done-btn lift-element" data-routine-name="${r.name}" title="标记 ${r.name} 为完成"><i class="fas fa-check"></i></button>`; routineListEl.appendChild(li);});}
+            function renderPotentialDebuffs(){potentialDebuffsListEl.innerHTML=''; let hPD=false; appData.routine_configs.forEach(r=>{const s=getOverdueStatus(r); let sug=null; if(s.overdue){sug="尽快完成。"; const hO=Math.abs(s.hoursLeft); if(r.name==="洗脸"&&hO>4)sug="清洁面部防油腻。"; if(r.name==="刷牙"&&hO>6)sug="清洁口腔保健康。"; if(r.name==="喝足够水"&&hO>3)sug="及时补充水分。"; if(r.name==="扔垃圾"&&hO>12)sug="清理垃圾防异味。"; if(r.name==="洗澡"&&hO>24)sug="进行身体清洁。"; if(r.name==="更换毛巾"&&hO>48)sug="更换毛巾减细菌。"; if(r.name==="打扫卫生"&&hO>48)sug="进行环境整理。"; if(r.name==="换床单"&&hO>72)sug="更换床单保睡眠。";} if(sug){hPD=true; const li=document.createElement('li'); li.innerHTML=`<span class="font-medium text-[var(--text-primary)] opacity-90">[${r.name}]</span> <span class="text-[var(--text-secondary)]">${s.message}. ${sug}</span>`; potentialDebuffsListEl.appendChild(li);}}); if(!hPD){potentialDebuffsListEl.innerHTML='<li class="text-sm text-green-400 flex items-center"><i class="fas fa-check-circle mr-2"></i>当前状态良好。</li>';}}
+            function basicMarkdownToHtml(md){let h=md; let l=h.split('\n'); let iL=false; h=l.map(ln=>{if(ln.startsWith('### ')){if(iL){iL=false; return`</ul><h3 class="text-base font-semibold mt-4 mb-2">${ln.substring(4)}</h3>`;}return`<h3 class="text-base font-semibold mt-4 mb-2">${ln.substring(4)}</h3>`;}else if(ln.startsWith('*   ')){let iC=ln.substring(4); iC=iC.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); if(!iL){iL=true; return`<ul><li>${iC}</li>`;}return`<li>${iC}</li>`;}else{let cT=''; if(iL){iL=false; cT='</ul>';} ln=ln.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); return cT+(ln?`<p>${ln}</p>`:'');}}).join(''); if(iL){h+='</ul>';} return h.trim();} // Slightly adjusted heading levels
+            function renderMarkdownPreview(){let mS=[]; const todayStr=new Date().toLocaleDateString('zh-CN',{year:'numeric', month:'long', day:'numeric'}); mS.push(`### 状态预览 (${todayStr})`); mS.push("### 潜在 Debuff & 建议"); const pI=potentialDebuffsListEl.querySelectorAll('li'); if(pI.length>0&&!pI[0].textContent.includes('状态良好')){pI.forEach(item=>{let t=item.innerHTML.replace(/<strong(.*?)>(.*?)<\/strong>/g,'**$2**'); t=t.replace(/<[^>]*>/g,''); mS.push(`*   ${t}`);});}else{mS.push("*   无");} mS.push("\n### 最近 Debuff 记录"); const dL=appData.logEntries.filter(e=>e.type==='debuff').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5); if(dL.length>0){dL.forEach(e=>{const t=new Date(e.timestamp).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); let lL=`*   [${t}] **${e.category1} / ${e.category2}**:`; if(e.intensity)lL+=` 强度 ${e.intensity}`; if(e.duration_estimated)lL+=` (${e.duration_estimated})`; if(e.notes)lL+=` - ${e.notes}`; mS.push(lL);});}else{mS.push("*   无");} mS.push("\n### 今日完成"); const today=new Date(); today.setHours(0,0,0,0); const tomorrow=new Date(today); tomorrow.setDate(today.getDate()+1); const cT=appData.logEntries.filter(e=>{const eD=new Date(e.timestamp); return e.type==='routine_completed'&&eD>=today&&eD<tomorrow;}).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp)); if(cT.length>0){cT.forEach(e=>{const t=new Date(e.timestamp).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); mS.push(`*   [${t}] **${e.routine_name}**`);});}else{mS.push("*   无");} mS.push("\n### 维护状态"); const sR=[...appData.routine_configs].sort((a,b)=>{const sA=getOverdueStatus(a),sB=getOverdueStatus(b); const oS=(s)=>s.overdue?2:(s.statusClass==='overdue-soon'?1:0); const sD=oS(sB)-oS(sA); if(sD!==0)return sD; if(sA.hoursLeft!==sB.hoursLeft)return sA.hoursLeft-sB.hoursLeft; return a.name.localeCompare(b.name);}); if(sR.length>0){sR.forEach(r=>{const s=getOverdueStatus(r); const lT=formatRelativeTime(r.last_completed); let sI=s.overdue?(Math.abs(s.hoursLeft)>48?'🔴逾期':'🟠逾期'):(s.statusClass==='overdue-soon'?'🟡将到期':'🟢正常'); if(s.message.includes('未开始'))sI='⚪未开始'; if(s.message.includes('无效')||s.message.includes('错误'))sI='❓错误'; mS.push(`*   **${r.name}**: ${sI} (${s.message}, 上次: ${lT})`);});}else{mS.push("*   无");} const markdownString=mS.join('\n'); const generatedHtml=basicMarkdownToHtml(markdownString); markdownOutputEl.innerHTML=generatedHtml;}
+
+             // --- Debuff Logging Flow (Condensed) ---
+            function startDebuffLogFlow(c1){debuffLogState.category1=c1; debuffLogState.category2=null; selectedCat1Display.textContent=c1; debuffLoggerModal.querySelector('#debuff-modal-title').textContent=`记录 Debuff: ${c1}`; category2ButtonsEl.innerHTML=''; const l2O=appData.customDebuffCategories[c1]; if(l2O&&l2O.length>0){l2O.sort().forEach(c2=>{const btn=document.createElement('button'); btn.textContent=c2; btn.className='btn-liquid-secondary lift-element'; btn.onclick=()=>selectL2Category(c2); category2ButtonsEl.appendChild(btn);}); category2OptionsContainer.style.display='block'; debuffDetailsEl.style.display='none'; debuffBackBtn.style.display='none';}else{category2OptionsContainer.style.display='none'; showDebuffDetails("无");} resetDebuffDetailsInputs(); openModal('debuff-logger');}
+            function selectL2Category(c2){debuffLogState.category2=c2; showDebuffDetails(c2);}
+            function showDebuffDetails(c2){selectedCat2Display.textContent=`${debuffLogState.category1} - ${c2}`; category2OptionsContainer.style.display='none'; debuffDetailsEl.style.display='block'; debuffBackBtn.style.display='inline-block';}
+            function resetDebuffDetailsInputs(){debuffDurationInput.value=''; debuffIntensitySlider.value=3; intensityValueDisplay.textContent='3'; debuffNotesInput.value='';}
+            window.goBackToL2=function(){debuffLogState.category2=null; debuffDetailsEl.style.display='none'; category2OptionsContainer.style.display='block'; debuffBackBtn.style.display='none';}
+            function submitDebuff(){if(!debuffLogState.category1||!debuffLogState.category2)return; const dD={type:'debuff',category1:debuffLogState.category1,category2:debuffLogState.category2,duration_estimated:debuffDurationInput.value.trim()||null,intensity:parseInt(debuffIntensitySlider.value,10),notes:debuffNotesInput.value.trim()||null}; addLogEntry(dD); closeModal('debuff-logger');}
+
+            // --- Modal Handling (Condensed) ---
+            window.openModal=function(id){document.getElementById(id).style.display='block';}
+            window.closeModal=function(id){document.getElementById(id).style.display='none'; if(id==='debuff-logger')resetDebuffLoggerState(); if(id==='routine-manager')resetRoutineForm();}
+            window.onclick=function(e){if(e.target.classList.contains('modal'))closeModal(e.target.id);}
+            function resetDebuffLoggerState(){debuffLogState={category1:null,category2:null}; debuffDetailsEl.style.display='none'; category2OptionsContainer.style.display='block';}
+
+            // --- Category Management (Condensed) ---
+            manageCategoriesBtn.addEventListener('click',()=>{renderCategoryManager(); openModal('category-manager');});
+            function renderCategoryManager(){renderL1ManagementList(); renderL1SelectOptions(); renderL2ManagementList();}
+            function renderL1ManagementList(){l1ManageListEl.innerHTML=''; const l1C=Object.keys(appData.customDebuffCategories).sort(); if(l1C.length===0){l1ManageListEl.innerHTML='<li class="text-sm text-[var(--text-secondary)] opacity-80">无一级分类。</li>'; return;} l1C.forEach(c1=>{const li=document.createElement('li'); li.className='flex justify-between items-center py-2'; li.innerHTML=`<span class="item-name">${c1}</span><div class="action-buttons space-x-2"><button class="btn-action btn-edit" onclick="editL1CategoryWrapper('${c1}')"><i class="fas fa-pencil-alt"></i></button><button class="btn-action btn-delete" onclick="deleteL1CategoryWrapper('${c1}')"><i class="fas fa-trash"></i></button></div>`; l1ManageListEl.appendChild(li);});}
+            function renderL1SelectOptions(){l1SelectForL2El.innerHTML='<option value="">-- 选择 --</option>'; const l1C=Object.keys(appData.customDebuffCategories).sort(); l1C.forEach(c1=>{const opt=document.createElement('option'); opt.value=c1; opt.textContent=c1; l1SelectForL2El.appendChild(opt);});}
+            window.renderL2ManagementList=function(){l2ManageListEl.innerHTML=''; const sL1=l1SelectForL2El.value; if(!sL1){l2ManageListEl.innerHTML='<li class="text-sm text-[var(--text-secondary)] opacity-80">请选择一级分类。</li>'; return;} const l2C=appData.customDebuffCategories[sL1]?.sort()||[]; if(l2C.length===0){l2ManageListEl.innerHTML=`<li class="text-sm text-[var(--text-secondary)] opacity-80">"${sL1}" 下无二级分类。</li>`; return;} l2C.forEach(c2=>{const li=document.createElement('li'); li.className='flex justify-between items-center py-2'; li.innerHTML=`<span class="item-name">${c2}</span><div class="action-buttons space-x-2"><button class="btn-action btn-edit" onclick="editL2CategoryWrapper('${sL1}', '${c2}')"><i class="fas fa-pencil-alt"></i></button><button class="btn-action btn-delete" onclick="deleteL2CategoryWrapper('${sL1}', '${c2}')"><i class="fas fa-trash"></i></button></div>`; l2ManageListEl.appendChild(li);});}
+            window.addL1Category=function(){const n=newL1NameInput.value.trim(); if(!n)return; if(appData.customDebuffCategories[n])return; appData.customDebuffCategories[n]=[]; saveData(); renderL1Categories(); renderCategoryManager(); newL1NameInput.value='';}
+            window.editL1CategoryWrapper=function(oN){const nN=prompt(`新名称 for "${oN}":`, oN)?.trim(); if(!nN||nN===oN)return; if(appData.customDebuffCategories[nN])return; appData.customDebuffCategories[nN]=appData.customDebuffCategories[oN]; delete appData.customDebuffCategories[oN]; saveData(); renderL1Categories(); renderCategoryManager();}
+            window.deleteL1CategoryWrapper=function(n){const l2C=appData.customDebuffCategories[n]?.length||0; const cM=`删除 L1 "${n}"?`+(l2C>0?` (${l2C} L2 项将一并删除!)`:''); if(confirm(cM)){delete appData.customDebuffCategories[n]; saveData(); renderL1Categories(); renderCategoryManager();}}
+            window.addL2Category=function(){const sL1=l1SelectForL2El.value; if(!sL1)return; const n=newL2NameInput.value.trim(); if(!n)return; const l2L=appData.customDebuffCategories[sL1]; if(l2L.includes(n))return; l2L.push(n); saveData(); renderL2ManagementList(); newL2NameInput.value='';}
+            window.editL2CategoryWrapper=function(l1N, oL2N){const nL2N=prompt(`新名称 for "${oL2N}" (in ${l1N}):`, oL2N)?.trim(); if(!nL2N||nL2N===oL2N)return; const l2L=appData.customDebuffCategories[l1N]; if(l2L.includes(nL2N))return; const i=l2L.indexOf(oL2N); if(i>-1){l2L[i]=nL2N; saveData(); renderL2ManagementList();}}
+            window.deleteL2CategoryWrapper=function(l1N, l2N){if(confirm(`删除 L2 "${l2N}" (in ${l1N})?`)){const l2L=appData.customDebuffCategories[l1N]; const i=l2L.indexOf(l2N); if(i>-1){l2L.splice(i,1); saveData(); renderL2ManagementList();}}}
+
+            // --- Routine Management (Condensed) ---
+            manageRoutinesBtn.addEventListener('click',()=>{resetRoutineForm(); renderRoutineManager(); openModal('routine-manager');});
+            function formatFrequency(r){if(r.frequency_hours)return`每 ${r.frequency_hours} 小时`; else if(r.frequency_days)return`每 ${r.frequency_days} 天`; else return"无";}
+            function renderRoutineManager(){routineManageListEl.innerHTML=''; if(!appData.routine_configs||appData.routine_configs.length===0){routineManageListEl.innerHTML='<li class="text-sm text-[var(--text-secondary)] opacity-80">无维护项目。</li>'; return;} const sR=[...appData.routine_configs].sort((a,b)=>a.name.localeCompare(b.name)); sR.forEach(r=>{const li=document.createElement('li'); li.className='flex justify-between items-center py-2'; li.innerHTML=`<div class="item-details flex-grow"><span class="item-name">${r.name}</span><span class="item-frequency ml-4">${formatFrequency(r)}</span></div><div class="action-buttons space-x-2 flex-shrink-0"><button class="btn-action btn-edit" onclick="editRoutineWrapper('${r.name}')"><i class="fas fa-pencil-alt"></i></button><button class="btn-action btn-delete" onclick="deleteRoutineWrapper('${r.name}')"><i class="fas fa-trash"></i></button></div>`; routineManageListEl.appendChild(li);});}
+            function resetRoutineForm(){routineFormTitle.textContent="添加新的维护项目"; newRoutineNameInput.value=''; newRoutineFreqValueInput.value='1'; newRoutineFreqUnitSelect.value='days'; editingRoutineOriginalNameInput.value=''; addEditRoutineBtn.innerHTML='<i class="fas fa-plus"></i> 添加项目'; addEditRoutineBtn.className='btn-liquid-accent'; cancelEditRoutineBtn.style.display='none'; newRoutineNameInput.disabled=false;}
+            window.addOrUpdateRoutine=function(){const oN=editingRoutineOriginalNameInput.value; const iE=!!oN; const name=newRoutineNameInput.value.trim(); const fV=parseInt(newRoutineFreqValueInput.value,10); const fU=newRoutineFreqUnitSelect.value; if(!name||isNaN(fV)||fV<=0)return; const nE=appData.routine_configs.some(r=>r.name===name); if((!iE&&nE)||(iE&&name!==oN&&nE))return; let rD={name:name,frequency_hours:fU==='hours'?fV:null,frequency_days:fU==='days'?fV:null,last_completed:null}; if(iE){const i=appData.routine_configs.findIndex(r=>r.name===oN); if(i>-1){rD.last_completed=appData.routine_configs[i].last_completed; appData.routine_configs[i]=rD;}else{resetRoutineForm(); return;}}else{appData.routine_configs.push(rD);} saveData(); renderRoutineManager(); renderDashboard(); resetRoutineForm();}
+            window.editRoutineWrapper=function(rN){const r=appData.routine_configs.find(r=>r.name===rN); if(!r)return; routineFormTitle.textContent=`编辑项目: ${rN}`; newRoutineNameInput.value=r.name; newRoutineFreqValueInput.value=r.frequency_hours||r.frequency_days||1; newRoutineFreqUnitSelect.value=r.frequency_hours?'hours':'days'; editingRoutineOriginalNameInput.value=rN; addEditRoutineBtn.innerHTML='<i class="fas fa-save"></i> 保存更改'; addEditRoutineBtn.className='btn-liquid-secondary'; cancelEditRoutineBtn.style.display='inline-flex';}
+            window.cancelEditRoutine=function(){resetRoutineForm();}
+            window.deleteRoutineWrapper=function(rN){if(confirm(`删除项目 "${rN}"?`)){const i=appData.routine_configs.findIndex(r=>r.name===rN); if(i>-1){appData.routine_configs.splice(i,1); saveData(); renderRoutineManager(); renderDashboard();}}}
+
+             // --- Custom CSS Handling (Condensed) ---
+            function applyCustomCSS(cssText,save=false){const id='custom-user-styles'; let el=document.getElementById(id); if(el)el.remove(); if(!cssText)return; el=document.createElement('style'); el.id=id; el.type='text/css'; el.textContent=cssText; document.head.appendChild(el); const msgEl=cssImportStatusEl; if(save){try{localStorage.setItem(LOCAL_STORAGE_CSS_KEY,cssText); msgEl.textContent='样式已应用并保存。'; msgEl.className='success';}catch(e){msgEl.textContent='样式应用，保存失败。'; msgEl.className='error';}}else{msgEl.textContent='已加载保存的样式。'; msgEl.className='success';} setTimeout(()=>{msgEl.textContent=''; msgEl.className='';}, 3000);}
+            function removeCustomCSS(){const id='custom-user-styles'; const el=document.getElementById(id); const msgEl=cssImportStatusEl; if(el){el.remove(); localStorage.removeItem(LOCAL_STORAGE_CSS_KEY); msgEl.textContent='自定义样式已移除。'; msgEl.className='success';}else{msgEl.textContent='无自定义样式。'; msgEl.className='';} setTimeout(()=>{msgEl.textContent=''; msgEl.className='';}, 3000);}
+            function loadCustomCSS(){try{const css=localStorage.getItem(LOCAL_STORAGE_CSS_KEY); if(css){applyCustomCSS(css,false);}}catch(e){cssImportStatusEl.textContent='加载样式出错。'; cssImportStatusEl.className='error'; setTimeout(()=>{cssImportStatusEl.textContent=''; cssImportStatusEl.className='';}, 3000);}}
+
+            // --- Event Listeners (Condensed) ---
+            debuffIntensitySlider.addEventListener('input',(e)=>{intensityValueDisplay.textContent=e.target.value;});
+            submitDebuffBtn.addEventListener('click',submitDebuff);
+            routineListEl.addEventListener('click',(e)=>{const btn=e.target.closest('.routine-done-btn'); if(btn){const rN=btn.dataset.routineName; const rI=appData.routine_configs.findIndex(r=>r.name===rN); if(rI>-1){appData.routine_configs[rI].last_completed=new Date().toISOString(); addLogEntry({type:'routine_completed',routine_name:rN});}}});
+            exportBtn.addEventListener('click',()=>{try{const dS=JSON.stringify(appData,null,2); const b=new Blob([dS],{type:'application/json;charset=utf-8'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); const tS=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-'); a.href=u; a.download=`debuff-tracker-liquid-v3-${tS}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); importStatusEl.textContent='数据已导出。'; importStatusEl.className='success';}catch(e){importStatusEl.textContent='导出失败。'; importStatusEl.className='error';} setTimeout(()=>{importStatusEl.textContent=''; importStatusEl.className='';}, 3000);});
+            importFileInput.addEventListener('change',(e)=>{const f=e.target.files[0]; if(!f||!f.name.toLowerCase().endsWith('.json')){e.target.value=null; return;} const r=new FileReader(); importStatusEl.textContent='读取中...'; importStatusEl.className=''; r.onload=(ev)=>{try{const iD=JSON.parse(ev.target.result); if(iD&&typeof iD==='object'&&Array.isArray(iD.logEntries)&&Array.isArray(iD.routine_configs)&&typeof iD.customDebuffCategories==='object'&&iD.customDebuffCategories!==null){if(confirm("导入将覆盖当前所有数据，确定?")){appData=iD; ensureAllDefaultRoutinesExist(false); saveData(); renderUI(); importStatusEl.textContent='导入成功！'; importStatusEl.className='success';}else{importStatusEl.textContent='导入已取消。'; importStatusEl.className='';}}else{throw new Error("文件格式无效.");}}catch(err){importStatusEl.textContent=`导入失败: ${err.message}`; importStatusEl.className='error';}finally{e.target.value=null; setTimeout(()=>{importStatusEl.textContent=''; importStatusEl.className='';}, 4000);}}; r.onerror=()=>{importStatusEl.textContent='读取文件出错。'; importStatusEl.className='error'; setTimeout(()=>{importStatusEl.textContent=''; importStatusEl.className='';}, 4000);}; r.readAsText(f);});
+            importCssInput.addEventListener('change',(e)=>{const f=e.target.files[0]; if(!f||!f.name.toLowerCase().endsWith('.css')){e.target.value=null; return;} const r=new FileReader(); cssImportStatusEl.textContent='读取样式...'; cssImportStatusEl.className=''; r.onload=(ev)=>{applyCustomCSS(ev.target.result,true);}; r.onerror=()=>{cssImportStatusEl.textContent='读取 CSS 出错。'; cssImportStatusEl.className='error'; setTimeout(()=>{cssImportStatusEl.textContent=''; cssImportStatusEl.className='';}, 4000);}; r.readAsText(f); e.target.value=null;});
+            removeCssBtn.addEventListener('click', removeCustomCSS);
+
+            // --- Initial Load ---
+            loadData();
+            loadCustomCSS();
+            renderUI();
+
+            // --- END JS ---
+        });
+    </script>
+</body>
+</html>
