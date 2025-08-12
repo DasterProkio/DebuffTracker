@@ -347,9 +347,9 @@ body.light {
      }
 
     /* Status spans */
-    #import-status, #css-import-status { display: inline-block; margin-left: 1rem; font-size: 0.85em; opacity: 0.8; }
-    #import-status.success, #css-import-status.success { color: #34d399; }
-    #import-status.error, #css-import-status.error { color: #f87171; }
+    #import-status, #export-status, #css-import-status { display: inline-block; margin-left: 1rem; font-size: 0.85em; opacity: 0.8; }
+    #import-status.success, #export-status.success, #css-import-status.success { color: #34d399; }
+    #import-status.error, #export-status.error, #css-import-status.error { color: #f87171; }
 
     /* Ensure icons align well with text */
     .fas, .far, .fal, .fad, .fab { margin-right: 0.4em; vertical-align: -0.1em; }
@@ -410,7 +410,7 @@ body.light {
                      <button id="manage-categories-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-tags fa-fw"></i>管理状态分类</button> <button id="manage-routines-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-calendar-check fa-fw"></i>管理日常作息</button> </div>
                  <div class="space-y-3">
                       <h3 class="text-base font-medium">数据操作</h3>
-                      <button id="export-data-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-file-export fa-fw"></i>导出数据 (JSON)</button> <label for="import-file-input" class="button-like-label w-full !justify-start btn-liquid-secondary"><i class="fas fa-file-import fa-fw"></i>导入数据 (JSON)</label> <input type="file" id="import-file-input" accept=".json" class="hidden">
+                      <button id="export-data-btn" class="w-full text-left btn-liquid-secondary justify-start"><i class="fas fa-file-export fa-fw"></i>导出数据 (JSON)</button> <span id="export-status"></span> <label for="import-file-input" class="button-like-label w-full !justify-start btn-liquid-secondary"><i class="fas fa-file-import fa-fw"></i>导入数据 (JSON)</label> <input type="file" id="import-file-input" accept=".json" class="hidden">
                      <span id="import-status"></span>
                  </div>
                  <div class="space-y-3">
@@ -623,6 +623,7 @@ body.light {
         const potentialDebuffsListEl=getEl('potential-debuffs-list');
         const routineListEl=getEl('routine-list');
         const exportBtn=getEl('export-data-btn');
+        const exportStatusEl=getEl('export-status');
         const importFileInput=getEl('import-file-input');
         const importStatusEl=getEl('import-status');
         const manageCategoriesBtn=getEl('manage-categories-btn');
@@ -1180,7 +1181,7 @@ body.light {
         debuffIntensitySlider.addEventListener('input', (e) => { intensityValueDisplay.textContent = e.target.value; });
         submitDebuffBtn.addEventListener('click', submitDebuff);
         routineListEl.addEventListener('click', (event) => { const button = event.target.closest('.routine-done-btn'); if (button) { const routineName = button.dataset.routineName; if (!routineName) return; const routineIndex = appData.routine_configs.findIndex(r => r.name === routineName); if (routineIndex > -1) { appData.routine_configs[routineIndex].last_completed = new Date().toISOString(); addLogEntry({ type: 'routine_completed', routine_name: routineName }); } else { console.warn(`Routine "${routineName}" not found.`); } } });
-        exportBtn.addEventListener('click', () => { /* ... keep enhanced version ... */ try { const dataStr = JSON.stringify(appData, null, 2); const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-'); link.href = url; link.download = `hangxu-ai-data-${timestamp}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); importStatusEl.textContent = '数据已导出。'; importStatusEl.className = 'success'; } catch (e) { console.error("Export failed:", e); importStatusEl.textContent = '数据导出失败。'; importStatusEl.className = 'error'; } setTimeout(()=>{ importStatusEl.textContent = ''; importStatusEl.className = ''; }, 3000); });
+        exportBtn.addEventListener('click', () => { /* ... keep enhanced version ... */ try { const dataStr = JSON.stringify(appData, null, 2); const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-'); link.href = url; link.download = `hangxu-ai-data-${timestamp}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); exportStatusEl.textContent = '数据已导出。'; exportStatusEl.className = 'success'; } catch (e) { console.error("Export failed:", e); exportStatusEl.textContent = '数据导出失败。'; exportStatusEl.className = 'error'; } setTimeout(()=>{ exportStatusEl.textContent = ''; exportStatusEl.className = ''; }, 3000); });
         importFileInput.addEventListener('change', (event) => { /* ... keep enhanced version ... */ const file = event.target.files[0]; if (!file || !file.name.toLowerCase().endsWith('.json')) { event.target.value = null; return; } const reader = new FileReader(); importStatusEl.textContent = '读取文件中...'; importStatusEl.className = ''; reader.onload = (e) => { try { const importedData = JSON.parse(e.target.result); if (importedData && typeof importedData === 'object' && Array.isArray(importedData.logEntries) && Array.isArray(importedData.routine_configs) && typeof importedData.customDebuffCategories === 'object' && importedData.customDebuffCategories !== null) { if (confirm("导入数据将覆盖当前所有内容，确定继续吗？")) { appData = importedData; ensureAllDefaultRoutinesExist(false); saveData(); renderUI(); importStatusEl.textContent = '数据导入成功！'; importStatusEl.className = 'success'; } else { importStatusEl.textContent = '导入已取消。'; importStatusEl.className = ''; } } else { throw new Error("文件内容格式无效或不完整。"); } } catch (err) { console.error("Import failed:", err); importStatusEl.textContent = `导入失败: ${err.message}`; importStatusEl.className = 'error'; } finally { event.target.value = null; setTimeout(()=>{ importStatusEl.textContent = ''; importStatusEl.className = ''; }, 4000); } }; reader.onerror = () => { importStatusEl.textContent = '读取文件时出错。'; importStatusEl.className = 'error'; event.target.value = null; setTimeout(()=>{ importStatusEl.textContent = ''; importStatusEl.className = ''; }, 4000); }; reader.readAsText(file); });
         importCssInput.addEventListener('change', (event) => { /* ... keep enhanced version ... */ const file = event.target.files[0]; if (!file || !file.name.toLowerCase().endsWith('.css')) { event.target.value = null; return; } const reader = new FileReader(); cssImportStatusEl.textContent = '读取样式...'; cssImportStatusEl.className = ''; reader.onload = (e) => { applyCustomCSS(e.target.result, true); }; reader.onerror = () => { cssImportStatusEl.textContent = '读取 CSS 文件出错。'; cssImportStatusEl.className = 'error'; setTimeout(()=>{ cssImportStatusEl.textContent = ''; cssImportStatusEl.className = ''; }, 4000); }; reader.readAsText(file); event.target.value = null; });
         removeCssBtn.addEventListener('click', removeCustomCSS);
