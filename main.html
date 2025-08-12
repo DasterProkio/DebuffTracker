@@ -8,10 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style id="default-styles">
     /* Define CSS Variables */
-    :root {
+:root {
         --bg-start: #2b1a3d; /* Deep Purple */
         --bg-mid: #1f3a61; /* Deep Blue */
         --bg-end: #1a4a5a; /* Dark Cyan/Teal */
@@ -24,7 +25,19 @@
         --glass-border: rgba(255, 255, 255, 0.1);
         --shadow-color: rgba(0, 0, 0, 0.3);
         --shadow-light: rgba(255, 255, 255, 0.1); /* Subtle highlight */
-    }
+}
+
+body.light {
+    --bg-start: #f5f5f5;
+    --bg-mid: #e0e0e0;
+    --bg-end: #dddddd;
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-light: rgba(255, 255, 255, 0.6);
+}
 
     /* Base Body Style with Animated Gradient */
     body {
@@ -232,7 +245,25 @@
     .status-message.overdue-false { color: #34d399; /* Lighter Emerald */ opacity: 1;}
     button.routine-done-btn { background: linear-gradient(120deg, #34d399, #2dd4bf); color: #1f2937; /* Dark text */ padding: 0.3rem 0.7rem; font-size: 0.8rem; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
     button.routine-done-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
-    .action-buttons { flex-shrink: 0; } /* Prevent shrinking */
+.action-buttons { flex-shrink: 0; } /* Prevent shrinking */
+
+    /* Kanban Board */
+    .kanban-column {
+         background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 1rem;
+        padding: 1rem;
+        min-height: 200px;
+    }
+    .kanban-list { min-height: 150px; }
+    .kanban-item {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--glass-border);
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: grab;
+    }
 
     /* Modal - Liquid Style */
     .modal { display: none; /* Hidden by default */ position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -337,48 +368,30 @@
 </head>
 <body class="min-h-screen">
     <div class="liquid-container">
-        <header>
-            <h1>航·序AI</h1> </header>
+        <header class="flex justify-between items-center">
+            <h1>航·序AI</h1>
+            <button id="theme-toggle" class="btn-liquid-secondary"><i class="fas fa-adjust"></i></button>
+        </header>
 
 <main class="space-y-8">
-        <section class="logging-area glass-section">
-            <h2><i class="fas fa-plus-circle"></i>记录状态 (Debuff)</h2> <div id="l1-categories-display" class="mt-4 flex flex-wrap gap-3">
-                <p class="text-sm text-gray-400">加载分类中...</p>
+        <section id="kanban-board" class="glass-section">
+            <h2><i class="fas fa-clipboard-list"></i>记录状态 (Debuff)</h2>
+            <button id="open-wizard-btn" class="btn-liquid-accent mb-4"><i class="fas fa-plus-circle"></i> 新增记录</button>
+            <div class="flex gap-4">
+                <div class="kanban-column flex-1">
+                    <h3>待处理</h3>
+                    <div id="kanban-todo" class="kanban-list"></div>
+                </div>
+                <div class="kanban-column flex-1">
+                    <h3>进行中</h3>
+                    <div id="kanban-doing" class="kanban-list"></div>
+                </div>
+                <div class="kanban-column flex-1">
+                    <h3>已完成</h3>
+                    <div id="kanban-done" class="kanban-list"></div>
+                </div>
             </div>
         </section>
-
-        <div id="debuff-logger" class="modal">
-             <div class="modal-content">
-                <span class="close-btn" onclick="closeModal('debuff-logger')">×</span>
-                <h3 id="debuff-modal-title" class="text-xl font-semibold mb-6">记录状态 (Debuff)</h3> <div id="category2-options" class="mb-6">
-                    <h4 class="text-base font-medium mb-3 text-gray-300">选择二级分类 (<span id="selected-cat1-display" class="font-semibold text-gray-100"></span>):</h4>
-                    <div id="category2-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div id="debuff-details" style="display: none;" class="space-y-5 pt-5 border-t border-[var(--glass-border)]">
-                    <h4 class="text-base font-medium mb-3 text-gray-300">添加详情 (<span id="selected-cat2-display" class="font-semibold text-gray-100"></span>):</h4>
-                    <div>
-                        <label for="debuff-duration">持续时间:</label>
-                        <input type="text" id="debuff-duration" placeholder="例如: 几小时, 半天, 持续中">
-                    </div>
-                    <div class="intensity-container">
-                        <label for="debuff-intensity-slider">强度:</label>
-                        <div class="slider-container">
-                            <span class="intensity-label-text">1</span>
-                            <input type="range" id="debuff-intensity-slider" min="1" max="5" value="3">
-                            <span class="intensity-label-text">5</span>
-                            <span id="intensity-value-display" class="ml-2">3</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="debuff-notes">备注:</label>
-                        <textarea id="debuff-notes" rows="3" placeholder="可选：触发因素？缓解方式？"></textarea> </div>
-                    <div class="flex justify-start gap-4 pt-4">
-                         <button id="submit-debuff-btn" class="btn-liquid-accent"><i class="fas fa-check"></i>确认</button>
-                         <button onclick="goBackToL2()" id="debuff-back-btn" class="btn-liquid-secondary"><i class="fas fa-arrow-left"></i>返回</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <section class="dashboard grid md:grid-cols-2 gap-8">
              <div class="glass-section">
@@ -480,7 +493,52 @@
          航·序AI - 让AI服务于人 | © 2025 DasterProkio
     </footer>
 
-</div> <script>
+</div>
+<div id="record-wizard" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 backdrop-blur-sm">
+    <div class="w-full h-full p-6 overflow-y-auto">
+        <div id="wizard-step-1" class="wizard-step">
+            <h3 class="text-xl font-semibold mb-6">选择一级分类</h3>
+            <div id="l1-categories-display" class="flex flex-wrap gap-2"></div>
+            <div class="mt-4">
+                <button id="wizard-close" class="btn-liquid-secondary">取消</button>
+            </div>
+        </div>
+        <div id="wizard-step-2" class="wizard-step hidden">
+            <h3 class="text-xl font-semibold mb-6">选择二级分类 (<span id="selected-cat1-display" class="font-semibold"></span>)</h3>
+            <div id="category2-buttons" class="flex flex-wrap gap-2 mb-6"></div>
+            <div class="flex gap-4">
+                <button id="wizard-back-1" class="btn-liquid-secondary">上一步</button>
+                <button id="wizard-close-2" class="btn-liquid-secondary">取消</button>
+            </div>
+        </div>
+        <div id="debuff-details" class="wizard-step hidden space-y-5">
+            <h3 class="text-xl font-semibold mb-6">添加详情 (<span id="selected-cat2-display" class="font-semibold"></span>)</h3>
+            <div>
+                <label for="debuff-duration">持续时间:</label>
+                <input type="text" id="debuff-duration" placeholder="例如: 几小时, 半天, 持续中">
+            </div>
+            <div class="intensity-container">
+                <label for="debuff-intensity-slider">强度:</label>
+                <div class="slider-container">
+                    <span class="intensity-label-text">1</span>
+                    <input type="range" id="debuff-intensity-slider" min="1" max="5" value="3">
+                    <span class="intensity-label-text">5</span>
+                    <span id="intensity-value-display" class="ml-2">3</span>
+                </div>
+            </div>
+            <div>
+                <label for="debuff-notes">备注:</label>
+                <textarea id="debuff-notes" rows="3" placeholder="可选：触发因素？缓解方式？"></textarea>
+            </div>
+            <div class="flex justify-start gap-4 pt-4">
+                <button id="submit-debuff-btn" class="btn-liquid-accent"><i class="fas fa-check"></i>确认</button>
+                <button id="debuff-back-btn" class="btn-liquid-secondary"><i class="fas fa-arrow-left"></i>返回</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- JS START ---
         const LOCAL_STORAGE_KEY = 'lifeDebuffTrackerData_v3_liquid_hangxu';
@@ -541,8 +599,6 @@
         // DOM Elements Cache (assuming IDs match HTML)
         const getEl = (id) => document.getElementById(id); // Helper
         const l1CategoriesDisplayEl=getEl('l1-categories-display');
-        const debuffLoggerModal=getEl('debuff-logger');
-        const category2OptionsContainer=getEl('category2-options');
         const category2ButtonsEl=getEl('category2-buttons');
         const debuffDetailsEl=getEl('debuff-details');
         const selectedCat1Display=getEl('selected-cat1-display');
@@ -553,6 +609,17 @@
         const debuffNotesInput=getEl('debuff-notes');
         const submitDebuffBtn=getEl('submit-debuff-btn');
         const debuffBackBtn=getEl('debuff-back-btn');
+        const openWizardBtn=getEl('open-wizard-btn');
+        const recordWizardEl=getEl('record-wizard');
+        const wizardStep1=getEl('wizard-step-1');
+        const wizardStep2=getEl('wizard-step-2');
+        const wizardCloseBtn=getEl('wizard-close');
+        const wizardCloseBtn2=getEl('wizard-close-2');
+        const wizardBack1Btn=getEl('wizard-back-1');
+        const themeToggleBtn=getEl('theme-toggle');
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') document.body.classList.add('light');
         const potentialDebuffsListEl=getEl('potential-debuffs-list');
         const routineListEl=getEl('routine-list');
         const exportBtn=getEl('export-data-btn');
@@ -986,34 +1053,49 @@
          }
 
         // --- Debuff Logging Flow --- (Keep enhanced version)
-         function startDebuffLogFlow(cat1) { /* ... keep enhanced version ... */
-             if (!appData.customDebuffCategories || !appData.customDebuffCategories[cat1]) { console.error(`Category ${cat1} not found.`); return; }
-             debuffLogState.category1 = cat1; debuffLogState.category2 = null;
-             selectedCat1Display.textContent = cat1;
-             debuffLoggerModal.querySelector('#debuff-modal-title').textContent = `记录状态: ${cat1}`;
-             category2ButtonsEl.innerHTML = '';
-             const l2Options = appData.customDebuffCategories[cat1];
-             if (l2Options && Array.isArray(l2Options) && l2Options.length > 0) {
-                 l2Options.sort().forEach(cat2 => {
-                     const btn = document.createElement('button'); btn.textContent = cat2;
-                     btn.className = 'btn-liquid-secondary lift-element'; btn.onclick = () => selectL2Category(cat2);
-                     category2ButtonsEl.appendChild(btn);
-                 });
-                 category2OptionsContainer.style.display = 'block'; debuffDetailsEl.style.display = 'none'; debuffBackBtn.style.display = 'none';
-             } else { selectL2Category("(无二级分类)"); }
-             resetDebuffDetailsInputs(); openModal('debuff-logger');
-         }
-         function selectL2Category(cat2) { debuffLogState.category2 = cat2; showDebuffDetails(cat2); }
-         function showDebuffDetails(cat2) { selectedCat2Display.textContent = `${debuffLogState.category1} / ${cat2}`; category2OptionsContainer.style.display = 'none'; debuffDetailsEl.style.display = 'block'; const l2Options = appData.customDebuffCategories[debuffLogState.category1]; debuffBackBtn.style.display = (l2Options && l2Options.length > 0) ? 'inline-flex' : 'none'; }
-         function resetDebuffDetailsInputs() { debuffDurationInput.value = ''; debuffIntensitySlider.value = 3; intensityValueDisplay.textContent = '3'; debuffNotesInput.value = ''; }
-         window.goBackToL2 = function() { debuffLogState.category2 = null; debuffDetailsEl.style.display = 'none'; category2OptionsContainer.style.display = 'block'; debuffBackBtn.style.display = 'none'; }
-         function submitDebuff() { if (!debuffLogState.category1 || !debuffLogState.category2) { console.error("Category not selected."); return; } const debuffData = { type: 'debuff', category1: debuffLogState.category1, category2: debuffLogState.category2, duration_estimated: debuffDurationInput.value.trim() || null, intensity: parseInt(debuffIntensitySlider.value, 10), notes: debuffNotesInput.value.trim() || null }; addLogEntry(debuffData); closeModal('debuff-logger'); }
+          function showWizardStep(step) {
+              wizardStep1.classList.toggle('hidden', step !== 1);
+              wizardStep2.classList.toggle('hidden', step !== 2);
+              debuffDetailsEl.classList.toggle('hidden', step !== 3);
+          }
+          function startDebuffLogFlow(cat1) {
+              if (!appData.customDebuffCategories || !appData.customDebuffCategories[cat1]) { console.error(`Category ${cat1} not found.`); return; }
+              debuffLogState.category1 = cat1; debuffLogState.category2 = null;
+              selectedCat1Display.textContent = cat1;
+              category2ButtonsEl.innerHTML = '';
+              const l2Options = appData.customDebuffCategories[cat1];
+              if (l2Options && Array.isArray(l2Options) && l2Options.length > 0) {
+                  l2Options.sort().forEach(cat2 => {
+                      const btn = document.createElement('button');
+                      btn.textContent = cat2;
+                      btn.className = 'btn-liquid-secondary lift-element kanban-item';
+                      btn.onclick = () => selectL2Category(cat2);
+                      category2ButtonsEl.appendChild(btn);
+                  });
+                  showWizardStep(2);
+              } else { selectL2Category("(无二级分类)"); }
+              resetDebuffDetailsInputs();
+          }
+          function selectL2Category(cat2) { debuffLogState.category2 = cat2; showDebuffDetails(cat2); }
+          function showDebuffDetails(cat2) {
+              selectedCat2Display.textContent = `${debuffLogState.category1} / ${cat2}`;
+              showWizardStep(3);
+          }
+          function resetDebuffDetailsInputs() { debuffDurationInput.value = ''; debuffIntensitySlider.value = 3; intensityValueDisplay.textContent = '3'; debuffNotesInput.value = ''; }
+          window.goBackToL2 = function() { debuffLogState.category2 = null; showWizardStep(2); }
+          function submitDebuff() {
+              if (!debuffLogState.category1 || !debuffLogState.category2) { console.error("Category not selected."); return; }
+              const debuffData = { type: 'debuff', category1: debuffLogState.category1, category2: debuffLogState.category2, duration_estimated: debuffDurationInput.value.trim() || null, intensity: parseInt(debuffIntensitySlider.value, 10), notes: debuffNotesInput.value.trim() || null };
+              addLogEntry(debuffData);
+              recordWizardEl.style.display = 'none';
+              resetDebuffLoggerState();
+          }
 
-        // --- Modal Handling --- (Keep enhanced version)
-         window.openModal = function(id) { const modal = getEl(id); if(modal) modal.style.display = 'block'; }
-         window.closeModal = function(id) { const modal = getEl(id); if(modal) modal.style.display = 'none'; if (id === 'debuff-logger') resetDebuffLoggerState(); if (id === 'routine-manager') resetRoutineForm(); }
-         window.onclick = function(event) { if (event.target.classList.contains('modal')) { closeModal(event.target.id); } }
-         function resetDebuffLoggerState(){ debuffLogState = { category1: null, category2: null }; if (debuffDetailsEl) debuffDetailsEl.style.display = 'none'; if (category2OptionsContainer) category2OptionsContainer.style.display = 'block'; }
+          // --- Modal Handling --- (Keep enhanced version)
+          window.openModal = function(id) { const modal = getEl(id); if(modal) modal.style.display = 'block'; }
+          window.closeModal = function(id) { const modal = getEl(id); if(modal) modal.style.display = 'none'; if (id === 'routine-manager') resetRoutineForm(); }
+          window.onclick = function(event) { if (event.target.classList.contains('modal')) { closeModal(event.target.id); } }
+          function resetDebuffLoggerState(){ debuffLogState = { category1: null, category2: null }; showWizardStep(1); }
 
         // --- Category Management --- (Keep enhanced version with listeners)
         manageCategoriesBtn.addEventListener('click', () => { renderCategoryManager(); openModal('category-manager'); });
@@ -1082,6 +1164,19 @@
          }
 
         // --- Event Listeners Setup --- (Keep enhanced version)
+        document.querySelectorAll('.kanban-list').forEach(list => {
+            new Sortable(list, { group: 'kanban', animation: 150 });
+        });
+        openWizardBtn.addEventListener('click', () => { recordWizardEl.style.display = 'block'; showWizardStep(1); });
+        wizardCloseBtn.addEventListener('click', () => { recordWizardEl.style.display = 'none'; resetDebuffLoggerState(); });
+        wizardCloseBtn2.addEventListener('click', () => { recordWizardEl.style.display = 'none'; resetDebuffLoggerState(); });
+        wizardBack1Btn.addEventListener('click', () => { showWizardStep(1); });
+        debuffBackBtn.addEventListener('click', () => goBackToL2());
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light');
+            const theme = document.body.classList.contains('light') ? 'light' : 'dark';
+            localStorage.setItem('theme', theme);
+        });
         debuffIntensitySlider.addEventListener('input', (e) => { intensityValueDisplay.textContent = e.target.value; });
         submitDebuffBtn.addEventListener('click', submitDebuff);
         routineListEl.addEventListener('click', (event) => { const button = event.target.closest('.routine-done-btn'); if (button) { const routineName = button.dataset.routineName; if (!routineName) return; const routineIndex = appData.routine_configs.findIndex(r => r.name === routineName); if (routineIndex > -1) { appData.routine_configs[routineIndex].last_completed = new Date().toISOString(); addLogEntry({ type: 'routine_completed', routine_name: routineName }); } else { console.warn(`Routine "${routineName}" not found.`); } } });
