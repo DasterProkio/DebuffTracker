@@ -32,11 +32,10 @@
         color: var(--text-primary);
         background: linear-gradient(270deg, var(--bg-start), var(--bg-mid), var(--bg-end), var(--bg-mid), var(--bg-start));
         background-size: 600% 600%;
-        animation: flowingGradient 25s ease infinite;
+        animation: flowingGradient 25s ease infinite, fadeInAnimation 0.6s ease forwards;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         opacity: 0; /* Start hidden for fade-in */
-        animation: fadeInAnimation ease 0.6s forwards;
         animation-delay: 0.1s;
     }
 
